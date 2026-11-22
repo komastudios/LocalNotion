@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -14,6 +15,11 @@ namespace Notion.Client
 {
     public class RestClient : IRestClient
     {
+        // Per attempt, covering the response body too (HttpClient buffers it by default).
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
+        private const int MaxAttempts = 5;
+        private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromSeconds(60);
+
         private readonly ClientOptions _options;
 
         protected readonly JsonSerializerSettings DefaultSerializerSettings = new()
@@ -107,7 +113,8 @@ namespace Notion.Client
                 headers,
                 AttachContent,
                 basicAuthenticationParameters,
-                cancellationToken
+                cancellationToken,
+                retry: false // the upload stream is consumed by the first attempt
             );
 
             return await response.ParseStreamAsync<T>(serializerSettings);
@@ -167,7 +174,7 @@ namespace Notion.Client
 
                     if (errorResponse.ErrorCode == NotionAPIErrorCode.RateLimited)
                     {
-                        var retryAfter = response.Headers.RetryAfter.Delta;
+                        var retryAfter = response.Headers.RetryAfter?.Delta;
 
                         return new NotionApiRateLimitException(
                             response.StatusCode,
@@ -193,32 +200,115 @@ namespace Notion.Client
             IDictionary<string, string> headers = null,
             Action<HttpRequestMessage> attachContent = null,
             IBasicAuthenticationParameters basicAuthenticationParameters = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default,
+            bool retry = true)
         {
             using var client = GetHttpClient();
 
             requestUri = AddQueryString(requestUri, queryParams);
 
-            using var httpRequest = new HttpRequestMessage(httpMethod, requestUri);
+            // Bounded retries for Notion's rate limiting (429), transient 5xx, network errors and
+            // timed-out attempts. Retries are logged at Warning; once attempts are exhausted the
+            // failure is thrown as before, so the caller still reports it as an error.
+            // A timeout is rethrown as TimeoutException rather than TaskCanceledException, so a
+            // hung request fails only the object being pulled instead of cancelling the whole run.
+            // Requests whose content cannot be re-sent (single-use upload streams) are not retried.
+            var maxAttempts = retry ? MaxAttempts : 1;
 
-            httpRequest.Headers.Authorization = CreateAuthenticationHeader(basicAuthenticationParameters);
-            httpRequest.Headers.Add("Notion-Version", _options.NotionVersion);
-
-            if (headers != null)
+            for (var attempt = 1;; attempt++)
             {
-                AddHeaders(httpRequest, headers);
+                using var httpRequest = new HttpRequestMessage(httpMethod, requestUri);
+
+                httpRequest.Headers.Authorization = CreateAuthenticationHeader(basicAuthenticationParameters);
+                httpRequest.Headers.Add("Notion-Version", _options.NotionVersion);
+
+                if (headers != null)
+                {
+                    AddHeaders(httpRequest, headers);
+                }
+
+                attachContent?.Invoke(httpRequest);
+
+                HttpResponseMessage response = null;
+                string reason;
+                var delay = Backoff(attempt);
+
+                try
+                {
+                    response = await client.SendAsync(httpRequest, cancellationToken);
+                    reason = null;
+                }
+                catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                {
+                    // HttpClient.Timeout elapsed; the caller did not cancel.
+                    if (attempt >= maxAttempts)
+                    {
+                        throw new TimeoutException(
+                            $"Notion API request {httpMethod} {requestUri} timed out after {attempt} attempt(s) of {RequestTimeout.TotalSeconds:0} s each.",
+                            ex);
+                    }
+
+                    reason = $"timed out after {RequestTimeout.TotalSeconds:0} s";
+                }
+                catch (HttpRequestException) when (attempt < maxAttempts)
+                {
+                    reason = "failed with a network error";
+                }
+
+                if (response != null)
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return response;
+                    }
+
+                    if (attempt >= maxAttempts || !IsRetryableStatus(response.StatusCode))
+                    {
+                        using (response)
+                        {
+                            throw await BuildException(response);
+                        }
+                    }
+
+                    reason = $"returned HTTP {(int)response.StatusCode}";
+                    delay = RetryAfter(response) ?? delay;
+                    response.Dispose();
+                }
+
+                Log.Warning(
+                    "Notion API request {method} {uri} {reason} (attempt {attempt} of {maxAttempts}); retrying in {delay:0.#} s",
+                    httpMethod, requestUri, reason, attempt, maxAttempts, delay.TotalSeconds);
+
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+
+        private static bool IsRetryableStatus(HttpStatusCode statusCode)
+        {
+            return statusCode == (HttpStatusCode)429
+                   || statusCode == HttpStatusCode.InternalServerError
+                   || statusCode == HttpStatusCode.BadGateway
+                   || statusCode == HttpStatusCode.ServiceUnavailable
+                   || statusCode == HttpStatusCode.GatewayTimeout;
+        }
+
+        private static TimeSpan? RetryAfter(HttpResponseMessage response)
+        {
+            var retryAfter = response.Headers.RetryAfter;
+            var delay = retryAfter?.Delta ?? (retryAfter?.Date - DateTimeOffset.UtcNow);
+
+            if (delay == null || delay < TimeSpan.Zero)
+            {
+                return null;
             }
 
-            attachContent?.Invoke(httpRequest);
+            return delay > MaxRetryAfter ? MaxRetryAfter : delay;
+        }
 
-            var response = await client.SendAsync(httpRequest, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw await BuildException(response);
-            }
-
-            return response;
+        // 1 s, 2 s, 4 s, 8 s
+        private static TimeSpan Backoff(int attempt)
+        {
+            return TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
         }
 
         private AuthenticationHeaderValue CreateAuthenticationHeader(IBasicAuthenticationParameters basicAuth)
@@ -242,6 +332,7 @@ namespace Notion.Client
 
             var httpClient = new HttpClient(pipeline);
             httpClient.BaseAddress = new Uri(_options.BaseUrl);
+            httpClient.Timeout = RequestTimeout;
             return httpClient;
         }
 

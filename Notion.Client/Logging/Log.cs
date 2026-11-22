@@ -19,6 +19,11 @@ namespace Notion.Client
             Logger?.LogInformation(message, args);
         }
 
+        internal static void Warning(string message, params object[] args)
+        {
+            Logger?.LogWarning(message, args);
+        }
+
         internal static void Error(Exception ex, string message, params object[] args)
         {
             Logger?.LogError(ex, message, args);

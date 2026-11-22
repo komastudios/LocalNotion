@@ -23,7 +23,9 @@ namespace Notion.Client
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to get response: {exception}", ex);
+                // Trace only: RestClient retries transient failures and the caller reports
+                // the final one, so an error here would flag requests that later succeed.
+                Log.Trace("Failed to get response: {exception}", ex);
 
                 throw;
             }

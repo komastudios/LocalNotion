@@ -550,7 +550,7 @@ $@"Local Notion Status:
 			return Constants.ERRORCODE_COMMANDLINE_ERROR;
 		}
 
-		var client = CreateNotionClientWithLicenseCheck(apiKey);
+		var client = CreateNotionClientWithLicenseCheck(apiKey, consoleLogger);
 
 		if (!arguments.Objects.Any()) {
 			// List workspace level
@@ -623,7 +623,7 @@ $@"Local Notion Status:
 				consoleLogger.Info("No API key was supplied by --key, NOTION_API_KEY_FILE, or the repository");
 				return -1;
 			}
-			var client = CreateNotionClientWithLicenseCheck(apiKey);
+			var client = CreateNotionClientWithLicenseCheck(apiKey, consoleLogger);
 
 			var syncOrchestrator = new NotionSyncOrchestrator(client, repo);
 
@@ -958,7 +958,7 @@ $@"Local Notion Status:
 		licenseEnforcer.EnforceLicense(false);
 	}
 
-	private static INotionClient CreateNotionClientWithLicenseCheck(string apiKey) {
+	private static INotionClient CreateNotionClientWithLicenseCheck(string apiKey, ILogger logger) {
 		
 		// Check repo count isn't exceeded
 		if (_licenseRights.LimitFeatureA.HasValue) {
@@ -987,6 +987,7 @@ $@"Local Notion Status:
 			_usageServices.SystemEncryptedProperties["UsedAuthTokens"] = usedAuthTokens;
 		}
 
+		NotionClientLogging.ConfigureLogger(new NotionClientLogBridge(logger));
 		return NotionClientFactory.Create(new ClientOptions { AuthToken = apiKey });
 
 	}
