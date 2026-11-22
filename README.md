@@ -1,43 +1,44 @@
 # Local Notion
 
-Local Notion brings your Notion workspace from the cloud to your local storage for backup, e-books, websites, and app integrations.
+**[Product page and documentation](https://sphere10.com/products/localnotion)**
 
-This repository contains the source code for the Local Notion application.
+Local Notion is an open-source command-line tool for keeping Notion content on your own storage and using it for backups, offline reading, websites, and applications.
 
-## Why Local Notion?
-
-Notion is a powerful cloud-based tool for notes, databases, and collaboration. However, relying solely on the cloud means you don't truly own your data. Local Notion solves this by:
-
-- **Data Ownership**: Download and store all your Notion content locally
-- **Offline Access**: Access your content without an internet connection
-- **Integration Ready**: Use your Notion data in websites, e-books, and custom applications
-- **Version Control**: Track changes to your Notion workspace using Git
+The official repository is [Sphere10/LocalNotion](https://github.com/Sphere10/LocalNotion). The original [HermanSchoenfeld/LocalNotion](https://github.com/HermanSchoenfeld/LocalNotion) repository remains the upstream source.
 
 ## Features
 
-Based on the product description on [https://sphere10.com/products/localnotion](https://sphere10.com/products/localnotion):
+- **Local backups:** Download pages, databases, attachments, and underlying objects.
+- **Continuous synchronization:** Poll Notion for changes and update your local repository.
+- **HTML export:** Browse downloaded content without depending on Notion's renderer.
+- **Custom themes:** Control the appearance of exported pages and databases.
+- **Offline publications:** Create linked HTML for e-books, manuals, and other distributable content.
+- **Website content:** Use Notion as a CMS and generate HTML for a web server.
+- **Application integration:** Download and render content for users of your own backend.
+- **Git history:** Track changes to local content through Git.
 
-- **Backup Notion Workspace**: Download all your Notion pages, databases, files, and objects to local storage
-- **Render in HTML**: Render your pages, databases, and files in pure HTML without any dependency on Notion
-- **Custom Rendering**: Control how your pages and databases are rendered with customizable styling for websites and e-books
-- **Create Offline eBooks**: Generate interconnected HTML files for offline browsing (e-books, product manuals, etc.)
-- **Create Website Content**: Generate advanced websites using Notion as your CMS
-- **Auto-Sync**: Synchronize your Local Notion repository with your Notion workspace in real-time
-- **Command Line Interface**: Explore Notion with a Git-like interface. Pull what you want, when you want
-- **Total Privacy**: Only you access your data from your machines
-- **Multi-Tenant Capability**: Integrate Local Notion into your app backend and download/render your users' Notion data
-- **Git Version Control**: Track your Notion changes in real-time using Git version control
-- **Workspace Restore** *(coming soon)*: Restore your Notion backups to Notion
-- **Offline Editing** *(coming soon)*: Edit your Notion content offline and synchronize to Notion when online
+Workspace restore is listed as **coming soon** on the [Local Notion product page](https://sphere10.com/products/localnotion).
 
-## Downloads
+## Native downloads
 
-Pre-built binaries are available for multiple platforms:
+Download a native archive to run Local Notion directly on Windows, Linux, or macOS. Unified releases use the same asset names, so these links follow the latest published GitHub release.
 
-- **Windows**: [Download (x64)](https://sp10-downloads.s3.us-west-1.amazonaws.com/localnotion/1.3/localnotion-win-x64-1.3.zip)
-- **macOS**: [Download (x64)](https://sp10-downloads.s3.us-west-1.amazonaws.com/localnotion/1.3/localnotion-osx-x64-1.3.zip)
-- **Linux**: [Download (x64)](https://sp10-downloads.s3.us-west-1.amazonaws.com/localnotion/1.3/localnotion-linux-x64-1.3.zip)
-- **Other platforms**: [All Downloads](https://sphere10.com/products/localnotion/downloads)
+| Platform | Download |
+| --- | --- |
+| Windows x64 | [localnotion-win-x64.zip](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-win-x64.zip) |
+| Windows x86 | [localnotion-win-x86.zip](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-win-x86.zip) |
+| Windows ARM64 | [localnotion-win-arm64.zip](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-win-arm64.zip) |
+| Linux x64 | [localnotion-linux-x64.tar.gz](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-linux-x64.tar.gz) |
+| Linux ARM64 | [localnotion-linux-arm64.tar.gz](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-linux-arm64.tar.gz) |
+| Linux ARM | [localnotion-linux-arm.tar.gz](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-linux-arm.tar.gz) |
+| macOS Intel | [localnotion-osx-x64.tar.gz](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-osx-x64.tar.gz) |
+| macOS Apple Silicon | [localnotion-osx-arm64.tar.gz](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-osx-arm64.tar.gz) |
+
+Each unified release includes release notes, [SHA-256 checksums](https://github.com/Sphere10/LocalNotion/releases/latest/download/SHA256SUMS.txt), and [release metadata](https://github.com/Sphere10/LocalNotion/releases/latest/download/release.json). Browse [all releases](https://github.com/Sphere10/LocalNotion/releases) for earlier versions.
+
+Extract the complete archive and keep native libraries and supporting files beside the executable. Run `.\localnotion.exe --help` on Windows or `./localnotion --help` on Linux/macOS for portable use. A separate .NET installation is not required.
+
+For installation under your user account, run `.\install.bat` on Windows or `sh ./install.sh` on Linux/macOS from the extracted directory. Windows supports `-InstallRoot` and `-NoPath`; Unix supports `--prefix`. The included README explains the version directories and PATH setup. These helpers retain earlier installations. macOS archives are unsigned and are not notarized by Apple.
 
 ## Screenshots
 
@@ -49,11 +50,11 @@ Pre-built binaries are available for multiple platforms:
 
 ## Documentation & Resources
 
-Sphere10 provides additional end-user documentation and resources:
+Use the [Local Notion product page](https://sphere10.com/products/localnotion) for the product overview, and these guides for setup and operation:
 
-- [How Local Notion Works](https://sphere10.com/products/localnotion/how-local-notion-works)
-- [Getting Started](https://sphere10.com/products/localnotion/getting-started)
-- [Local Notion Manual](https://sphere10.com/products/localnotion/local-notion-manual)
+- [How Local Notion Works](https://sphere10.com/products/localnotion/how-local-notion-works): repositories, stored files, themes, and rendering profiles.
+- [Getting Started](https://sphere10.com/products/localnotion/getting-started): create a Notion integration and grant it access to your content.
+- [Local Notion Manual](https://sphere10.com/products/localnotion/local-notion-manual): installation, CLI commands, and rendering options.
 
 ## Build From Source
 
@@ -141,6 +142,14 @@ localnotion sync --all
 localnotion sync --all -f 10
 ```
 
+### Git change tracking
+
+For a repository initialized with `--git`, Local Notion stages and commits local changes after supported operations. With `--git-push`, it also pushes to the configured upstream. Git identity, remote configuration, and authentication must be available to the account running Local Notion.
+
+Local Notion passes `-c safe.directory=<selected-repository>` to each Git command. This trusts the explicitly selected repository for that command only, including when restored files, a different operating-system account, or a container mount gives the repository a different owner. It does not change global or system Git configuration or trust every repository. This behavior is shared by native Windows/Linux builds and Docker.
+
+Git's `detected dubious ownership` error is an ownership check, not a timeout or synchronization delay; it can stop staging before commit or push is reached. See [Git's safe.directory documentation](https://git-scm.com/docs/git-config#Documentation/git-config.txt-safedirectory). Update Local Notion using the [native downloads](#native-downloads) or [Docker setup instructions](#get-started-with-docker).
+
 ### Render Content
 
 ```bash
@@ -218,6 +227,8 @@ Contributions are welcome!
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
+Maintainers: see the [release and deployment guide](build/README.md) for CI/CD, versioning, and the next-release checklist.
+
 ## License
 
 This project is licensed under the **GNU GPL v3.0** (or later).
@@ -232,3 +243,33 @@ This project is licensed under the **GNU GPL v3.0** (or later).
 **Website:** [https://sphere10.com/products/localnotion](https://sphere10.com/products/localnotion)
 
 **Copyright:** © Herman Schoenfeld 2018 - Present. All rights reserved.
+
+## Get started with Docker
+
+Use Docker to run Local Notion as a normal command or a background synchronization service. On Windows, start Docker Desktop in **Linux containers** mode. The official image targets **linux/amd64**.
+
+The official stable image is `ghcr.io/sphere10/local-notion:latest`. [Local Notion 1.5.0](https://github.com/Sphere10/LocalNotion/releases/tag/v1.5.0) is publicly available on GitHub Releases. Newer stable releases update `latest` automatically.
+
+```powershell
+docker pull ghcr.io/sphere10/local-notion:latest
+docker run --rm ghcr.io/sphere10/local-notion:latest --version
+```
+
+For a Windows `localnotion` command, download the [Docker launcher installer](https://github.com/Sphere10/LocalNotion/releases/latest/download/localnotion-docker-windows.zip), extract the entire ZIP, and run this from its directory:
+
+```powershell
+.\install.bat
+```
+
+The installer pulls the image version recorded in the bundle, installs the launcher for your user, and adds it to your user PATH. The bundle includes the launcher source and scripts; no repository checkout or separate .NET SDK is required. Open a new terminal, then run:
+
+```powershell
+localnotion --version
+localnotion --help
+```
+
+For repeatable deployments, select an explicit image version such as `ghcr.io/sphere10/local-notion:1.5.0`. From a source checkout, `.\docker\install-cli.ps1 -Image local-notion:latest -BuildImage` builds and installs the local image.
+
+The command uses your current folder, or the folder selected by `--path`. The background service keeps a separate repository under `.docker/data`. The [Docker guide](docker/README.md) covers both modes, token setup, importing data, updates, and Git authentication.
+
+The **Other > Docker** solution folder contains the Docker configuration and Windows launcher source, scripts, and guide. These are solution items for browsing and editing. Use the [launcher installer](docker/README.md#how-the-windows-launcher-is-built) to build and install the Docker-backed Windows command; a normal solution build builds the application projects.

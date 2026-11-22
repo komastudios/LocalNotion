@@ -1,11 +1,4 @@
 @echo off
-
-dotnet build -c Release
-if %ERRORLEVEL% NEQ 0 goto Exit
-
-dotnet publish -c Release /p:PublishProfile=linux-x64
-del y:\builds\LocalNotion\latest\linux-x64\*.pdb
-del y:\builds\LocalNotion\latest\linux-x64\*.dll
-
-:Exit
-pause
+setlocal
+pwsh -NoLogo -NoProfile -File "%~dp0build\package.ps1" -Runtime linux-x64 %*
+exit /b %ERRORLEVEL%
